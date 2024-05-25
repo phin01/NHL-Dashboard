@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "NHL Dashboard"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "a1303972-d2dd-48be-b217-f01df38ba345"
+  }
+}
