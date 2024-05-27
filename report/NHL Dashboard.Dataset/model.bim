@@ -4,7 +4,7 @@
     "annotations": [
       {
         "name": "PBI_QueryOrder",
-        "value": "[\"Team Results\",\"Teams\",\"MeasureTable\",\"Seasons\",\"Tiers\",\"TierComparison\",\"TierPointsCategory\"]"
+        "value": "[\"Team Results\",\"dimTeams\",\"_MeasureTable\",\"dimSeasons\",\"dimTiers\",\"_TierComparison\",\"_TierPointsCategory\",\"Playoffs\",\"Standings\",\"SeasonOverallScore\"]"
       },
       {
         "name": "__PBI_TimeIntelligenceEnabled",
@@ -71,73 +71,87 @@
         "fromColumn": "teamId",
         "fromTable": "Team Results",
         "toColumn": "id",
-        "toTable": "Teams"
+        "toTable": "dimTeams"
       },
       {
         "name": "c8552208-f09a-41f2-afb1-42af6c3c392f",
         "fromColumn": "season",
         "fromTable": "Team Results",
         "toColumn": "season",
-        "toTable": "Seasons"
+        "toTable": "dimSeasons"
       },
       {
         "name": "2d9ec3e5-68af-4c62-a279-3cec02184881",
         "fromColumn": "tier",
         "fromTable": "Team Results",
         "toColumn": "tier",
-        "toTable": "Tiers"
+        "toTable": "dimTiers"
       },
       {
         "name": "df9cd0fa-1cb3-408c-a21d-3ccf78d7a1b2",
         "fromColumn": "tier",
         "fromTable": "PointsPerTier",
         "toColumn": "tier",
-        "toTable": "Tiers"
+        "toTable": "dimTiers"
       },
       {
         "name": "cddcd45a-5ebd-493a-9798-9adfeed1d013",
         "fromColumn": "season",
         "fromTable": "PointsPerTier",
         "toColumn": "season",
-        "toTable": "Seasons"
+        "toTable": "dimSeasons"
       },
       {
         "name": "4d3af56e-1253-4773-9aba-da34fc716bce",
         "fromColumn": "teamId",
         "fromTable": "PointsPerTier",
         "toColumn": "id",
-        "toTable": "Teams"
+        "toTable": "dimTeams"
       },
       {
         "name": "4ae05780-9813-46ee-ab11-3c51ed18423e",
         "fromColumn": "tier",
         "fromTable": "MedianPointsPerTier",
         "toColumn": "tier",
-        "toTable": "Tiers"
+        "toTable": "dimTiers"
       },
       {
         "name": "af8f880d-bd13-42aa-806b-ec33a34e3b87",
         "fromColumn": "season",
         "fromTable": "MedianPointsPerTier",
         "toColumn": "season",
-        "toTable": "Seasons"
+        "toTable": "dimSeasons"
       },
       {
         "name": "14b739b9-be31-42de-8dba-76ba441c502f",
         "fromColumn": "tier",
         "fromTable": "PointsPerTier_Bounds",
         "toColumn": "tier",
-        "toTable": "Tiers"
+        "toTable": "dimTiers"
       },
       {
         "name": "3f9b66f6-6d92-4824-87de-9a8a88263984",
         "fromColumn": "season",
         "fromTable": "PointsPerTier_Bounds",
         "toColumn": "season",
-        "toTable": "Seasons"
+        "toTable": "dimSeasons"
+      },
+      {
+        "name": "27e93b26-763c-3ea1-deb2-a162ea030833",
+        "fromColumn": "seasonId",
+        "fromTable": "Standings",
+        "toColumn": "season",
+        "toTable": "dimSeasons"
+      },
+      {
+        "name": "c094cdc9-3c4a-34f0-90b2-d3f240d692c2",
+        "fromColumn": "seasonId",
+        "fromTable": "Playoffs",
+        "toColumn": "season",
+        "toTable": "dimSeasons"
       }
     ],
-    "sourceQueryCulture": "pt-BR",
+    "sourceQueryCulture": "en-US",
     "tables": [
       {
         "name": "Team Results",
@@ -702,12 +716,8 @@
         "showAsVariationsOnly": true
       },
       {
-        "name": "Teams",
+        "name": "dimTeams",
         "annotations": [
-          {
-            "name": "PBI_NavigationStepName",
-            "value": "Navigation"
-          },
           {
             "name": "PBI_ResultType",
             "value": "Table"
@@ -758,7 +768,7 @@
         "lineageTag": "35dd7ba3-d474-4ad0-8bac-24b6aec2938d",
         "partitions": [
           {
-            "name": "Teams",
+            "name": "dimTeams",
             "mode": "import",
             "queryGroup": "Dimension Tables",
             "source": {
@@ -776,16 +786,11 @@
         ]
       },
       {
-        "name": "MeasureTable",
+        "name": "_MeasureTable",
         "annotations": [
           {
             "name": "PBI_ResultType",
             "value": "Table"
-          }
-        ],
-        "changedProperties": [
-          {
-            "property": "Name"
           }
         ],
         "columns": [
@@ -848,11 +853,11 @@
               "",
               "CALCULATE(",
               "    AVERAGEX(",
-              "        VALUES(Seasons[season]),",
+              "        VALUES(dimSeasons[season]),",
               "        CALCULATE(",
               "            [__Distinct Team Count]",
               "        )",
-              "    ), ALL(Seasons)",
+              "    ), ALL(dimSeasons)",
               ")",
               "",
               ""
@@ -877,7 +882,7 @@
             "displayFolder": "Tier Count",
             "expression": [
               "",
-              "SWITCH(SELECTEDVALUE(TierComparison[Index]),",
+              "SWITCH(SELECTEDVALUE(_TierComparison[Index]),",
               "    1, [__Distinct Team Count],",
               "    2, [__Average Distinct Team Count]",
               ")"
@@ -889,14 +894,12 @@
             "displayFolder": "Tier Count",
             "expression": [
               "",
-              "var t1_t2 = CALCULATE([__Distinct Team Count], Tiers[tier] = \"Tier 1\") + CALCULATE([__Distinct Team Count], Tiers[tier] = \"Tier 2\")",
-              "var avg_t1_t2 = CALCULATE([__Average Distinct Team Count], Tiers[tier] = \"Tier 1\") + CALCULATE([__Average Distinct Team Count], Tiers[tier] = \"Tier 2\")",
-              "var tier_delta = t1_t2 - avg_t1_t2",
+              "var tier_delta = [Tier Distribution Score]",
               "",
               "",
               "",
               "return",
-              "SELECTEDVALUE(Seasons[season]) & \" had \" & ABS(tier_delta) & IF(tier_delta > 0, \" more \", \" less \") & ",
+              "SELECTEDVALUE(dimSeasons[season]) & \" had \" & ABS(tier_delta) & IF(tier_delta > 0, \" more \", \" less \") & ",
               "\"teams in T1 and T2 (\" & IF(tier_delta > 0, \"more\", \"less\") & \" competitive)\"",
               "",
               "",
@@ -910,7 +913,7 @@
             "displayFolder": "Tier Count",
             "expression": [
               "",
-              "var t1_t2 = CALCULATE([__Distinct Team Count], Tiers[tier] = \"Tier 1\") + CALCULATE([__Distinct Team Count], Tiers[tier] = \"Tier 2\")",
+              "var t1_t2 = CALCULATE([__Distinct Team Count], dimTiers[tier] = \"Tier 1\") + CALCULATE([__Distinct Team Count], dimTiers[tier] = \"Tier 2\")",
               "var totalTeams = [__Distinct Team Count]",
               "",
               "return",
@@ -927,11 +930,11 @@
               "",
               "CALCULATE(",
               "    AVERAGEX(",
-              "        VALUES(Seasons[season]),",
+              "        VALUES(dimSeasons[season]),",
               "        CALCULATE(",
               "            SUM(MedianPointsPerTier[MedianPerTier])",
               "        )",
-              "    ), ALL(Seasons)",
+              "    ), ALL(dimSeasons)",
               ")"
             ],
             "formatString": "0",
@@ -949,11 +952,11 @@
               "",
               "CALCULATE(",
               "    AVERAGEX(",
-              "        VALUES(Seasons[season]),",
+              "        VALUES(dimSeasons[season]),",
               "        CALCULATE(",
               "            SUM(PointsPerTier_Bounds[TierMinPoints])",
               "        )",
-              "    ), ALL(Seasons)",
+              "    ), ALL(dimSeasons)",
               ")"
             ],
             "lineageTag": "13ff0d17-dfe7-4eba-a936-57d589732489"
@@ -970,11 +973,11 @@
               "",
               "CALCULATE(",
               "    AVERAGEX(",
-              "        VALUES(Seasons[season]),",
+              "        VALUES(dimSeasons[season]),",
               "        CALCULATE(",
               "            SUM(PointsPerTier_Bounds[TierMaxPoints])",
               "        )",
-              "    ), ALL(Seasons)",
+              "    ), ALL(dimSeasons)",
               ")"
             ],
             "lineageTag": "38e818f7-cd68-4e0e-8275-14923dbb0938"
@@ -1020,7 +1023,7 @@
             "displayFolder": "Tier Points",
             "expression": [
               "",
-              "if(SELECTEDVALUE(TierPointsCategory[Category]) = \"Season\",",
+              "if(SELECTEDVALUE(_TierPointsCategory[Category]) = \"Season\",",
               "    [Season Tier Points Lower]",
               ")",
               "",
@@ -1040,7 +1043,7 @@
             "displayFolder": "Tier Points",
             "expression": [
               "",
-              "if(SELECTEDVALUE(TierPointsCategory[Category]) = \"Season\",",
+              "if(SELECTEDVALUE(_TierPointsCategory[Category]) = \"Season\",",
               "    [Season Tier Points Upper]",
               ")",
               "",
@@ -1060,7 +1063,7 @@
             "displayFolder": "Tier Points",
             "expression": [
               "",
-              "if(SELECTEDVALUE(TierPointsCategory[Category]) = \"Avg\",",
+              "if(SELECTEDVALUE(_TierPointsCategory[Category]) = \"Avg\",",
               "    [__Avg Lower Bound Points Per Tier]",
               ")",
               "",
@@ -1080,7 +1083,7 @@
             "displayFolder": "Tier Points",
             "expression": [
               "",
-              "if(SELECTEDVALUE(TierPointsCategory[Category]) = \"Avg\",",
+              "if(SELECTEDVALUE(_TierPointsCategory[Category]) = \"Avg\",",
               "    [__Avg Upper Bound Points Per Tier]",
               ")",
               "",
@@ -1123,11 +1126,11 @@
             "displayFolder": "Tier Points",
             "expression": [
               "",
-              "VAR _t1_Score = CALCULATE([Tier Score], Tiers[tier]=\"Tier 1\") * 5",
-              "VAR _t2_Score = CALCULATE([Tier Score], Tiers[tier]=\"Tier 2\") * 4",
-              "VAR _t3_Score = CALCULATE([Tier Score], Tiers[tier]=\"Tier 3\") * 3",
-              "VAR _t4_Score = CALCULATE([Tier Score], Tiers[tier]=\"Tier 4\") * 2",
-              "VAR _t5_Score = CALCULATE([Tier Score], Tiers[tier]=\"Tier 5\")",
+              "VAR _t1_Score = CALCULATE([Tier Score], dimTiers[tier]=\"Tier 1\") * 5",
+              "VAR _t2_Score = CALCULATE([Tier Score], dimTiers[tier]=\"Tier 2\") * 4",
+              "VAR _t3_Score = CALCULATE([Tier Score], dimTiers[tier]=\"Tier 3\") * 3",
+              "VAR _t4_Score = CALCULATE([Tier Score], dimTiers[tier]=\"Tier 4\") * 2",
+              "VAR _t5_Score = CALCULATE([Tier Score], dimTiers[tier]=\"Tier 5\")",
               "",
               "RETURN _t1_Score + _t2_Score + _t3_Score + _t4_Score + _t5_Score",
               "",
@@ -1151,11 +1154,101 @@
               ""
             ],
             "lineageTag": "d84d9b14-2513-4b7a-be25-155ec0b8452c"
+          },
+          {
+            "name": "Playoff Series Factor",
+            "annotations": [
+              {
+                "name": "PBI_FormatHint",
+                "value": "{\"isGeneralNumber\":true}"
+              }
+            ],
+            "displayFolder": "Playoffs Series",
+            "expression": "CALCULATE(SUM(Playoffs[seriesFactor]))",
+            "lineageTag": "c13d9049-01b5-49e2-a64b-b7fae39a75da"
+          },
+          {
+            "name": "__Avg Playoff Series Factor",
+            "annotations": [
+              {
+                "name": "PBI_FormatHint",
+                "value": "{\"isGeneralNumber\":true}"
+              }
+            ],
+            "expression": [
+              "",
+              "CALCULATE(",
+              "    AVERAGEX(",
+              "        VALUES(dimSeasons[season]),",
+              "        CALCULATE(",
+              "            SUM(Playoffs[seriesFactor])",
+              "        )",
+              "    ), ALL(dimSeasons)",
+              ")"
+            ],
+            "lineageTag": "587cf3f2-9f30-4a43-bf38-b2259f524520"
+          },
+          {
+            "name": "Season Tier BarChart Label",
+            "displayFolder": "Tier Points",
+            "expression": [
+              "",
+              "",
+              "SELECTEDVALUE(dimTiers[tierLabel]) & \": \" & [Visual_Season Upper Tier]",
+              "",
+              ""
+            ],
+            "lineageTag": "a8dcc346-1a78-4ae6-81d9-d80f792bf913"
+          },
+          {
+            "name": "Season Tier BarChart Label Buffer",
+            "displayFolder": "Tier Points",
+            "expression": "10",
+            "formatString": "0",
+            "lineageTag": "29e44cce-3967-4e30-837c-3c410ec075f1"
+          },
+          {
+            "name": "Playoffs Factos Subtitle",
+            "displayFolder": "Playoffs Series",
+            "expression": [
+              "",
+              "var _avg = CALCULATE([__Avg Playoff Series Factor], ALL(Playoffs[seriesLabel]))",
+              "var _comparison = if([Playoff Series Factor] > _avg, \"better\", \"worse\")",
+              "",
+              "",
+              "return ",
+              "\"Playoffs factor of \" & FORMAT([Playoff Series Factor], \"0.0\") & \" was \" & _comparison & \" than average (\"& FORMAT(_avg, \"0.0\")&\")\"",
+              "",
+              "",
+              "",
+              ""
+            ],
+            "lineageTag": "cf8d140b-4741-46ea-87f0-8092fe1124c7"
+          },
+          {
+            "name": "Tier Distribution Score",
+            "annotations": [
+              {
+                "name": "PBI_FormatHint",
+                "value": "{\"isGeneralNumber\":true}"
+              }
+            ],
+            "displayFolder": "Tier Count",
+            "expression": [
+              "",
+              "var t1_t2 = CALCULATE([__Distinct Team Count], dimTiers[tier] = \"Tier 1\") + CALCULATE([__Distinct Team Count], dimTiers[tier] = \"Tier 2\")",
+              "var avg_t1_t2 = CALCULATE([__Average Distinct Team Count], dimTiers[tier] = \"Tier 1\") + CALCULATE([__Average Distinct Team Count], dimTiers[tier] = \"Tier 2\")",
+              "var tier_delta = t1_t2 - avg_t1_t2",
+              "",
+              "return ",
+              "tier_delta"
+            ],
+            "lineageTag": "d39552e7-b57e-4fa0-ba76-f816f8eb73d7"
           }
         ],
         "partitions": [
           {
-            "name": "MeasureTable",
+            "name": "_MeasureTable",
             "mode": "import",
             "source": {
               "expression": [
@@ -1171,12 +1264,8 @@
         ]
       },
       {
-        "name": "Seasons",
+        "name": "dimSeasons",
         "annotations": [
-          {
-            "name": "PBI_NavigationStepName",
-            "value": "Navigation"
-          },
           {
             "name": "PBI_ResultType",
             "value": "Table"
@@ -1200,7 +1289,7 @@
         "lineageTag": "75fda604-9d4a-4c25-9c58-a18d65d69986",
         "partitions": [
           {
-            "name": "Seasons",
+            "name": "dimSeasons",
             "mode": "import",
             "queryGroup": "Dimension Tables",
             "source": {
@@ -1218,12 +1307,8 @@
         ]
       },
       {
-        "name": "Tiers",
+        "name": "dimTiers",
         "annotations": [
-          {
-            "name": "PBI_NavigationStepName",
-            "value": "Navigation"
-          },
           {
             "name": "PBI_ResultType",
             "value": "Table"
@@ -1260,7 +1345,7 @@
         "lineageTag": "3691e236-7ab7-4106-a353-7d11de1c5dae",
         "partitions": [
           {
-            "name": "Tiers",
+            "name": "dimTiers",
             "mode": "import",
             "queryGroup": "Dimension Tables",
             "source": {
@@ -1279,15 +1364,11 @@
         ]
       },
       {
-        "name": "TierComparison",
+        "name": "_TierComparison",
         "annotations": [
           {
             "name": "PBI_ResultType",
             "value": "Table"
-          },
-          {
-            "name": "PBI_NavigationStepName",
-            "value": "Navigation"
           }
         ],
         "columns": [
@@ -1328,7 +1409,7 @@
         "lineageTag": "510a6aa7-5b6e-48cf-bc71-3c9768738572",
         "partitions": [
           {
-            "name": "TierComparison",
+            "name": "_TierComparison",
             "mode": "import",
             "source": {
               "expression": [
@@ -1727,59 +1808,8 @@
         ]
       },
       {
-        "name": "Table",
+        "name": "_TierPointsCategory",
         "annotations": [
-          {
-            "name": "PBI_Id",
-            "value": "20a380d14b8d4667a835b5bc30734734"
-          },
-          {
-            "name": "436ba87b-9c83-4389-a31b-ebd06a36be98",
-            "value": "{\"Expression\":null}"
-          },
-          {
-            "name": "277cc1b9-af89-4597-8e15-cacc25c0886b",
-            "value": "To use special characters in a calculated table name, enclose the entire name in brackets ( [] ) and add a ] to any closing brackets in the name."
-          }
-        ],
-        "columns": [
-          {
-            "name": "Column",
-            "annotations": [
-              {
-                "name": "SummarizationSetBy",
-                "value": "Automatic"
-              }
-            ],
-            "dataType": "int64",
-            "formatString": "0",
-            "isDataTypeInferred": true,
-            "isNameInferred": true,
-            "lineageTag": "1332149e-7f5d-4cb5-b677-8587c4c49d6a",
-            "sourceColumn": "[Column]",
-            "summarizeBy": "sum",
-            "type": "calculatedTableColumn"
-          }
-        ],
-        "lineageTag": "1ceeb354-dc06-417b-8ebf-065a8a517e82",
-        "partitions": [
-          {
-            "name": "Table",
-            "mode": "import",
-            "source": {
-              "expression": "Row(\"Column\", BLANK())",
-              "type": "calculated"
-            }
-          }
-        ]
-      },
-      {
-        "name": "TierPointsCategory",
-        "annotations": [
-          {
-            "name": "PBI_NavigationStepName",
-            "value": "Navigation"
-          },
           {
             "name": "PBI_ResultType",
             "value": "Table"
@@ -1803,13 +1833,931 @@
         "lineageTag": "73106ed9-c2be-4b89-8d34-35d9c4deaa9f",
         "partitions": [
           {
-            "name": "TierPointsCategory",
+            "name": "_TierPointsCategory",
             "mode": "import",
             "source": {
               "expression": [
                 "let",
                 "    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText(\"i45WcixLV4rViVYKTk0szs9Tio0FAA==\", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Category = _t]),",
                 "    #\"Changed Type\" = Table.TransformColumnTypes(Source,{{\"Category\", type text}})",
+                "in",
+                "    #\"Changed Type\""
+              ],
+              "type": "m"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Playoffs",
+        "annotations": [
+          {
+            "name": "PBI_NavigationStepName",
+            "value": "Navigation"
+          },
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "columns": [
+          {
+            "name": "seriesLetter",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "string",
+            "lineageTag": "c017c816-d9db-44b7-8a19-380df6c28155",
+            "sourceColumn": "seriesLetter",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "roundNumber",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "90b92319-5566-40ae-8083-91f7aab81237",
+            "sourceColumn": "roundNumber",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "seriesLabel",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "string",
+            "lineageTag": "8acebf53-5add-4138-90a1-ad17ed6d41a6",
+            "sourceColumn": "seriesLabel",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "neededToWin",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "b303a41e-8f72-475f-a316-e2225528824e",
+            "sourceColumn": "neededToWin",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "winningTeamId",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "e4392a18-5745-4d4f-8e7a-0516e8d9969b",
+            "sourceColumn": "winningTeamId",
+            "summarizeBy": "count"
+          },
+          {
+            "name": "losingTeamId",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "2d72a4db-c2fe-4f6d-a7c3-3eb446696d52",
+            "sourceColumn": "losingTeamId",
+            "summarizeBy": "count"
+          },
+          {
+            "name": "seasonId",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "string",
+            "lineageTag": "59a2f201-a752-4c30-9279-0f3407dd8f99",
+            "sourceColumn": "seasonId",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "bottomSeedTeam",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "string",
+            "lineageTag": "5eb74eba-06ea-431a-ba65-d427d3c372fd",
+            "sourceColumn": "bottomSeedTeam",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "bottomSeedId",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "8d3ddfdc-bfba-434f-aaf5-3e3efcded2e9",
+            "sourceColumn": "bottomSeedId",
+            "summarizeBy": "count"
+          },
+          {
+            "name": "bottomSeedWins",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "1e503cdf-b43f-4ede-87da-92128b12cb92",
+            "sourceColumn": "bottomSeedWins",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "topSeedTeam",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "string",
+            "lineageTag": "c10b94ed-00e1-4985-9c28-e56f9bb9abbd",
+            "sourceColumn": "topSeedTeam",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "topSeedId",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "64ac3a25-7ea6-4502-92f4-3a3354073377",
+            "sourceColumn": "topSeedId",
+            "summarizeBy": "count"
+          },
+          {
+            "name": "topSeedWins",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "8b812360-9253-4b72-bc8a-0b80b71557ff",
+            "sourceColumn": "topSeedWins",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "bottomSeedPoints",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "01449765-47e7-4d89-a023-9d6242b4486b",
+            "sourceColumn": "bottomSeedPoints",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "topSeedPoints",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "75e0f96f-07b7-42af-b9d4-931e6a2f13bb",
+            "sourceColumn": "topSeedPoints",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "pointsFactor",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              },
+              {
+                "name": "PBI_FormatHint",
+                "value": "{\"isGeneralNumber\":true}"
+              }
+            ],
+            "dataType": "double",
+            "lineageTag": "698de54f-2593-41e7-a73c-40a4ca7f92f6",
+            "sourceColumn": "pointsFactor",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "resultFactor",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "d1229d88-4c20-4fc1-90fc-d202f3fe0778",
+            "sourceColumn": "resultFactor",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "seriesFactor",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "double",
+            "formatString": "#,0.0",
+            "lineageTag": "b0ac6254-265f-4d0e-8296-f5efacac8966",
+            "sourceColumn": "seriesFactor",
+            "summarizeBy": "sum"
+          }
+        ],
+        "lineageTag": "a0ff35b2-284d-466a-8a16-812f56dd8594",
+        "partitions": [
+          {
+            "name": "Playoffs",
+            "mode": "import",
+            "queryGroup": "Fact Tables",
+            "source": {
+              "expression": [
+                "let",
+                "    Source = Csv.Document(File.Contents(\"C:\\Portfolio\\BI_Portfolio\\NHL Dashboard\\data\\gold\\playoffs.csv\"),[Delimiter=\",\", Columns=18, Encoding=1252, QuoteStyle=QuoteStyle.None]),",
+                "    #\"Promoted Headers\" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),",
+                "    #\"Changed Type\" = Table.TransformColumnTypes(#\"Promoted Headers\",{{\"seriesLetter\", type text}, {\"roundNumber\", Int64.Type}, {\"seriesLabel\", type text}, {\"neededToWin\", Int64.Type}, {\"winningTeamId\", Int64.Type}, {\"losingTeamId\", Int64.Type}, {\"seasonId\", type text}, {\"bottomSeedTeam\", type text}, {\"bottomSeedId\", Int64.Type}, {\"bottomSeedWins\", Int64.Type}, {\"topSeedTeam\", type text}, {\"topSeedId\", Int64.Type}, {\"topSeedWins\", Int64.Type}, {\"bottomSeedPoints\", Int64.Type}, {\"topSeedPoints\", Int64.Type}, {\"pointsFactor\", type number}, {\"resultFactor\", Int64.Type}, {\"seriesFactor\", type number}}),",
+                "    #\"Extracted First Characters\" = Table.TransformColumns(#\"Changed Type\", {{\"seasonId\", each Text.Start(_, 4), type text}}),",
+                "    #\"Filtered Rows\" = Table.SelectRows(#\"Extracted First Characters\", each [pointsFactor] <> null and [pointsFactor] <> \"\"),",
+                "    #\"Replaced Value\" = Table.ReplaceValue(#\"Filtered Rows\",\"-\",\" \",Replacer.ReplaceText,{\"seriesLabel\"}),",
+                "    #\"Capitalized Each Word\" = Table.TransformColumns(#\"Replaced Value\",{{\"seriesLabel\", Text.Proper, type text}}),",
+                "    #\"Replaced Value1\" = Table.ReplaceValue(#\"Capitalized Each Word\",\"1S\",\"1s\",Replacer.ReplaceText,{\"seriesLabel\"}),",
+                "    #\"Replaced Value2\" = Table.ReplaceValue(#\"Replaced Value1\",\"2N\",\"2n\",Replacer.ReplaceText,{\"seriesLabel\"})",
+                "in",
+                "    #\"Replaced Value2\""
+              ],
+              "type": "m"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Standings",
+        "annotations": [
+          {
+            "name": "PBI_NavigationStepName",
+            "value": "Navigation"
+          },
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "columns": [
+          {
+            "name": "clinchIndicator",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "string",
+            "lineageTag": "b6b6553f-a109-46bd-8b76-d4e64394d19a",
+            "sourceColumn": "clinchIndicator",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "conferenceName",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "string",
+            "lineageTag": "bcd25838-ea99-441f-8964-784b64bba211",
+            "sourceColumn": "conferenceName",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "divisionName",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "string",
+            "lineageTag": "24c66ff5-0f24-47ec-bf2c-5efb26de7022",
+            "sourceColumn": "divisionName",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "goalFor",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "88103a2c-d778-4ef0-8dc3-4f5f27af6e7a",
+            "sourceColumn": "goalFor",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "goalAgainst",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "62fc9d64-a47a-4664-942e-bede556a6a74",
+            "sourceColumn": "goalAgainst",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "homeGoalsFor",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "7bfb5fcb-13bc-4a04-9d45-0d8a07c6f44d",
+            "sourceColumn": "homeGoalsFor",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "homeGoalsAgainst",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "752adecb-a5df-4444-afd9-69d06713c85f",
+            "sourceColumn": "homeGoalsAgainst",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "homeLosses",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "c14e16e0-4b09-40e4-8f1b-b3287c18704e",
+            "sourceColumn": "homeLosses",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "homeOtLosses",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "84b62297-cad5-49c1-bfb8-1e3d1ee62cde",
+            "sourceColumn": "homeOtLosses",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "homePoints",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "636755b2-c5e4-4592-8596-606b0f88611d",
+            "sourceColumn": "homePoints",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "homeRegulationPlusOtWins",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "ef997b52-e865-4fea-b307-bd263c608031",
+            "sourceColumn": "homeRegulationPlusOtWins",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "homeRegulationWins",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "56f6951f-1025-4307-b700-7949b786ed51",
+            "sourceColumn": "homeRegulationWins",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "homeTies",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "5005a87b-9d0c-40d2-852b-6ba17bb20240",
+            "sourceColumn": "homeTies",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "homeWins",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "84d634da-964f-4f7b-af80-6403d37cda0c",
+            "sourceColumn": "homeWins",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "losses",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "0fc4116c-6175-4b76-b742-976a00415e2e",
+            "sourceColumn": "losses",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "otLosses",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "19ae8623-6191-4ae7-80cf-980a15ecac64",
+            "sourceColumn": "otLosses",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "points",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "36863d27-b15f-4eae-a410-0c41d7bdd430",
+            "sourceColumn": "points",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "regulationPlusOtWins",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "03437e92-33a7-4f3d-8196-2fd982bfb70b",
+            "sourceColumn": "regulationPlusOtWins",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "regulationWins",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "264c4bc1-c911-4f60-bad1-6fe1acf89e34",
+            "sourceColumn": "regulationWins",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "roadGoalsAgainst",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "fec6c139-e349-4cf2-a7bb-c30110fae9b0",
+            "sourceColumn": "roadGoalsAgainst",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "roadGoalsFor",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "aa493758-db1b-4f3c-b41e-92aed1eaeae7",
+            "sourceColumn": "roadGoalsFor",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "roadLosses",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "051346d8-1681-403f-9644-6399f27de4d5",
+            "sourceColumn": "roadLosses",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "roadOtLosses",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "30db64d6-bb1a-4023-a9f8-788e29aa4be4",
+            "sourceColumn": "roadOtLosses",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "roadPoints",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "dc48cbc8-a529-4c58-8d5f-4414a33a3d39",
+            "sourceColumn": "roadPoints",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "roadRegulationPlusOtWins",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "1dcd9b45-c270-4f86-aea3-14bbe2b8dcbf",
+            "sourceColumn": "roadRegulationPlusOtWins",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "roadRegulationWins",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "fe73772d-4bb2-4c87-b343-c9f09817f135",
+            "sourceColumn": "roadRegulationWins",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "roadTies",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "ea48b3aa-2623-4c30-8b76-6d892a10af6c",
+            "sourceColumn": "roadTies",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "roadWins",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "48b70d9e-c02a-47cf-a32b-64be077c94c7",
+            "sourceColumn": "roadWins",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "shootoutWins",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "d878c0f9-ca3d-4717-acb7-603e32663b06",
+            "sourceColumn": "shootoutWins",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "ties",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "96a3b1b7-b771-47fa-b278-0a79b7fafa7e",
+            "sourceColumn": "ties",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "wins",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "54158771-ba63-4336-b1f7-6f1b418dbc16",
+            "sourceColumn": "wins",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "teamAbbrev.default",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "string",
+            "lineageTag": "d7dfa392-0628-44e5-ab08-8a201617edc6",
+            "sourceColumn": "teamAbbrev.default",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "seasonId",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "string",
+            "lineageTag": "eeaeb4dd-93ff-4b3d-9fa8-09e231687c69",
+            "sourceColumn": "seasonId",
+            "summarizeBy": "none"
+          }
+        ],
+        "lineageTag": "2b014cfa-9f7b-4859-8020-1cd22104b715",
+        "partitions": [
+          {
+            "name": "Standings",
+            "mode": "import",
+            "queryGroup": "Fact Tables",
+            "source": {
+              "expression": [
+                "let",
+                "    Source = Csv.Document(File.Contents(\"C:\\Portfolio\\BI_Portfolio\\NHL Dashboard\\data\\silver\\standings\\standings.csv\"),[Delimiter=\",\", Columns=33, Encoding=1252, QuoteStyle=QuoteStyle.None]),",
+                "    #\"Promoted Headers\" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),",
+                "    #\"Changed Type\" = Table.TransformColumnTypes(#\"Promoted Headers\",{{\"clinchIndicator\", type text}, {\"conferenceName\", type text}, {\"divisionName\", type text}, {\"goalFor\", Int64.Type}, {\"goalAgainst\", Int64.Type}, {\"homeGoalsFor\", Int64.Type}, {\"homeGoalsAgainst\", Int64.Type}, {\"homeLosses\", Int64.Type}, {\"homeOtLosses\", Int64.Type}, {\"homePoints\", Int64.Type}, {\"homeRegulationPlusOtWins\", Int64.Type}, {\"homeRegulationWins\", Int64.Type}, {\"homeTies\", Int64.Type}, {\"homeWins\", Int64.Type}, {\"losses\", Int64.Type}, {\"otLosses\", Int64.Type}, {\"points\", Int64.Type}, {\"regulationPlusOtWins\", Int64.Type}, {\"regulationWins\", Int64.Type}, {\"roadGoalsAgainst\", Int64.Type}, {\"roadGoalsFor\", Int64.Type}, {\"roadLosses\", Int64.Type}, {\"roadOtLosses\", Int64.Type}, {\"roadPoints\", Int64.Type}, {\"roadRegulationPlusOtWins\", Int64.Type}, {\"roadRegulationWins\", Int64.Type}, {\"roadTies\", Int64.Type}, {\"roadWins\", Int64.Type}, {\"shootoutWins\", Int64.Type}, {\"ties\", Int64.Type}, {\"wins\", Int64.Type}, {\"teamAbbrev.default\", type text}, {\"seasonId\", type text}}),",
+                "    #\"Extracted First Characters\" = Table.TransformColumns(#\"Changed Type\", {{\"seasonId\", each Text.Start(_, 4), type text}})",
+                "in",
+                "    #\"Extracted First Characters\""
+              ],
+              "type": "m"
+            }
+          }
+        ]
+      },
+      {
+        "name": "PlayoffSeriesFactorAxis",
+        "annotations": [
+          {
+            "name": "PBI_Id",
+            "value": "15fcbe3f8a604f48af0131c881b2f408"
+          }
+        ],
+        "columns": [
+          {
+            "name": "PlayoffSeriesFactorAxis",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "User"
+              }
+            ],
+            "dataType": "int64",
+            "extendedProperties": [
+              {
+                "name": "ParameterMetadata",
+                "type": "json",
+                "value": {
+                  "version": 0
+                }
+              }
+            ],
+            "formatString": "0",
+            "isDataTypeInferred": true,
+            "isNameInferred": false,
+            "lineageTag": "6812f727-706d-4c42-b6f5-7082b4550fd5",
+            "sourceColumn": "[Value]",
+            "summarizeBy": "none",
+            "type": "calculatedTableColumn"
+          }
+        ],
+        "lineageTag": "513712cc-e093-4f4a-b951-c068f23275b9",
+        "measures": [
+          {
+            "name": "PlayoffSeriesFactorAxis Value",
+            "expression": "SELECTEDVALUE('PlayoffSeriesFactorAxis'[PlayoffSeriesFactorAxis], 0)",
+            "formatString": "0",
+            "lineageTag": "e806cda3-a5a2-4b8f-bf33-02c71550462e"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "PlayoffSeriesFactorAxis",
+            "mode": "import",
+            "source": {
+              "expression": "GENERATESERIES(-100, 100, 1)",
+              "type": "calculated"
+            }
+          }
+        ]
+      },
+      {
+        "name": "SeasonOverallScore",
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "columns": [
+          {
+            "name": "ScoreCategories",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "string",
+            "lineageTag": "47241358-f04c-4294-a007-40774f62750e",
+            "sourceColumn": "ScoreCategories",
+            "summarizeBy": "none"
+          }
+        ],
+        "lineageTag": "969e4f5d-eacd-4de7-8544-59411a1c4b4c",
+        "measures": [
+          {
+            "name": "Season Score by Category",
+            "expression": [
+              "",
+              "SWITCH(SELECTEDVALUE(SeasonOverallScore[ScoreCategories]),",
+              "    \"Tier Distribution\", [Tier Distribution Score],",
+              "    \"Tier Performance\", [Season Tier Score],",
+              "    \"Points Range\", 1,",
+              "    \"Playoffs Factor\", [Playoff Series Factor],",
+              "    [Tier Distribution Score] + [Season Tier Score]",
+              ")",
+              "",
+              "",
+              ""
+            ],
+            "formatString": "0.0",
+            "lineageTag": "9bdb9682-dcf5-4ff7-a468-984185330f93"
+          },
+          {
+            "name": "Season rank",
+            "expression": [
+              "",
+              "RANKX(",
+              "    ALL(dimSeasons),",
+              "    CALCULATE([Season Tier Score]),",
+              "    CALCULATE([Season Tier Score]),",
+              "    DESC,",
+              "    DENSE",
+              ")",
+              "",
+              "",
+              "",
+              ""
+            ],
+            "formatString": "0",
+            "lineageTag": "bebc2c70-3abd-4c4a-b09d-00ad119c9b10"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "SeasonOverallScore",
+            "mode": "import",
+            "source": {
+              "expression": [
+                "let",
+                "    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText(\"i45WCslMLVJwySwuKcpMKi3JzM9TitWBigakFqXlF+Um5iWnggUD8jPzSooVghLz0qECOYmV+WlpxQpuickl+UVKsbEA\", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [ScoreCategories = _t]),",
+                "    #\"Changed Type\" = Table.TransformColumnTypes(Source,{{\"ScoreCategories\", type text}})",
                 "in",
                 "    #\"Changed Type\""
               ],
